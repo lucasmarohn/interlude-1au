@@ -34,9 +34,9 @@
             z-index: 10;
             position: absolute;
             mix-blend-mode: screen;
-            /* opacity: 0; */
-            /* animation: fadeIn .5s ease-in-out forwards; */
-            /* animation-delay: 3s; */
+            opacity: 0;
+            animation: fadeIn .5s ease-in-out forwards;
+            animation-delay: 3s;
         }
 
         .controls {
@@ -104,9 +104,9 @@
 </head>
 <body>
     <canvas class="canvas particle" data-parallax="0.05"></canvas>
-    <canvas class="canvas particle" data-parallax="0.07" style="filter: blur(10px)"></canvas>
+    <!-- <canvas class="canvas particle" data-parallax="0.07" style="filter: blur(10px)"></canvas> -->
     <canvas class="canvas sprite" data-parallax="0.025"></canvas>
-    <!-- <video src="footage/V10001-0250.mp4" muted autoplay playsInline class="bg-video"></video> -->
+    <video src="footage/0001-0600.mp4" muted autoplay playsInline class="bg-video"></video>
 
 
     <div class="controls">
@@ -151,15 +151,16 @@
                 // Configuration
                 this.config = {
                     particleCount: 200,
-                    speed: 1 * speedMultiplier,
-                    size: 0.08,
+                    speed: .25 * speedMultiplier,
+                    size: 1,
                     centerX: 0,
                     centerY: 0,
                     maxDistance: 0,
                     fadeDistance: 500,
                     zoom: 2.5,
                     parallaxIntensity: parseFloat(this.canvas.dataset.parallax) || 0.05,
-                    videoSkewIntensity: 0.05
+                    videoSkewIntensity: 0,
+                    maxLife: 200 // Maximum life span for regular particles
                 };
                 
                 // Mouse tracking for parallax and video skew
@@ -173,6 +174,7 @@
                 this.setupCanvas();
                 this.setupEventListeners();
                 this.createParticles();
+                this.setupUniformCreation();
                 // Delay animation start to match CSS animation delay (10s) + fade duration (5s)
                 this.animate();
             }
@@ -191,6 +193,16 @@
                     Math.pow(this.canvas.width, 2) + 
                     Math.pow(this.canvas.height, 2)
                 );
+            }
+            
+            setupUniformCreation() {
+                // Create regular particles at uniform intervals to maintain consistent distribution
+                const interval = this.config.maxLife / this.config.particleCount;
+                
+                this.creationInterval = setInterval(() => {
+                    // Always create a new particle to maintain count
+                    this.particles.push(this.createParticle());
+                }, interval);
             }
             
             setupEventListeners() {
@@ -213,11 +225,6 @@
                     this.videoSkewX = normalizedX * this.config.videoSkewIntensity;
                     this.videoSkewY = normalizedY * this.config.videoSkewIntensity;
                     
-                    // Apply skew to video
-                    const video = document.querySelector('.bg-video');
-                    if (video) {
-                        video.style.transform = `skew(${this.videoSkewX}rad, ${this.videoSkewY}rad)`;
-                    }
                 });
                 
                 // Particle count control
@@ -264,10 +271,8 @@
             }
             
             createParticles() {
+                // Start with empty array - particles will be created uniformly over time
                 this.particles = [];
-                for (let i = 0; i < this.config.particleCount; i++) {
-                    this.particles.push(this.createParticle());
-                }
             }
             
             createParticle() {
@@ -304,8 +309,8 @@
                     particle.vy += (Math.random() - 0.5) * 0.02;
                     
                     // Apply slight acceleration
-                    particle.vx *= 1.05;
-                    particle.vy *= 1.05;
+                    particle.vx *= .9999;
+                    particle.vy *= .9999;
                     
                     // Update life
                     particle.life -= 1 / particle.maxLife;
@@ -321,8 +326,7 @@
                     // Only remove dead particles, let them move past the edge
                     if (particle.life <= 0) {
                         this.particles.splice(i, 1);
-                        // Replace with new particle to maintain count
-                        this.particles.push(this.createParticle());
+                        // Don't immediately replace - let uniform creation handle it
                     }
                 }
             }
@@ -404,8 +408,8 @@
                 // Configuration
                 this.config = {
                     particleCount: 500,
-                    speed: 1 * speedMultiplier,
-                    size: 0.015,
+                    speed: 2 * speedMultiplier,
+                    size: 1,
                     centerX: 0,
                     centerY: 0,
                     maxDistance: 0,
@@ -415,7 +419,7 @@
                     videoSkewIntensity: 0.05,
                     spriteSize: 20, // Size of the sprite image
                     rotationSpeed: 0.02, // How fast particles rotate
-                    maxLife: 500 // Maximum life span for sprites
+                    maxLife: 1000 // Maximum life span for sprites
                 };
                 
                 // Mouse tracking for parallax and video skew
@@ -494,18 +498,6 @@
                     this.parallaxOffsetX = (this.mouseX - centerX) * this.config.parallaxIntensity;
                     this.parallaxOffsetY = (this.mouseY - centerY) * this.config.parallaxIntensity;
                     
-                    // Calculate video skew based on mouse position relative to center
-                    const normalizedX = (this.mouseX - centerX) / centerX; // -1 to 1
-                    const normalizedY = (this.mouseY - centerY) / centerY; // -1 to 1
-                    
-                    this.videoSkewX = normalizedX * this.config.videoSkewIntensity;
-                    this.videoSkewY = normalizedY * this.config.videoSkewIntensity;
-                    
-                    // Apply skew to video
-                    const video = document.querySelector('.bg-video');
-                    if (video) {
-                        video.style.transform = `skew(${this.videoSkewX}rad, ${this.videoSkewY}rad)`;
-                    }
                 });
                 
                 // Particle count control
@@ -608,8 +600,8 @@
                     particle.vy += (Math.random() - 0.5) * 0.02;
                     
                     // Apply slight friction
-                    particle.vx *= 1.001;
-                    particle.vy *= 1.001;
+                    particle.vx *= .9999;
+                    particle.vy *= .9999;
                     
                     // Update life
                     particle.life -= 1 / particle.maxLife;
@@ -692,7 +684,7 @@
         }
 
         const canvases = document.querySelectorAll('canvas.particle')
-        const sprites = [] // document.querySelectorAll('canvas.sprite')
+        const sprites = document.querySelectorAll('canvas.sprite')
         
         canvases.forEach(canvasElement => {
             new ParticleSystem(canvasElement)
