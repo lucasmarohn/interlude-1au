@@ -104,16 +104,19 @@
                 transform: rotate(400deg)
             }
         }
+        [data-parallax] {
+            transition: transform ease-out 1s;
+        }
 
         
 
     </style>
 </head>
 <body>
-    <canvas class="canvas particle" data-parallax="0.05"></canvas>
+    <canvas class="canvas particle" data-parallax="3"></canvas>
     <!-- <canvas class="canvas particle" data-parallax="0.07" style="filter: blur(10px)"></canvas> -->
-    <canvas class="canvas sprite" data-parallax="0.025"></canvas>
-    <video src="http://cdn.prod.website-files.com/5ff3b5564c41048449a189b2%2F68c1a67ef8cee1a64073b0f4_sept09-0001-0660_small-transcode.mp4" muted autoplay playsInline class="bg-video"></video>
+    <canvas class="canvas sprite" data-parallax="2"></canvas>
+    <video src="http://cdn.prod.website-files.com/5ff3b5564c41048449a189b2%2F68c1a67ef8cee1a64073b0f4_sept09-0001-0660_small-transcode.mp4" data-parallax="1" muted autoplay playsInline class="bg-video"></video>
     <div class="bg-images">
         <img src="radial-blur.png" class="bg-image">
         <img src="radial-blur.png" class="bg-image slow">
@@ -151,18 +154,8 @@
                     maxDistance: 0,
                     fadeDistance: 500,
                     zoom: 2.5,
-                    parallaxIntensity: isTouchDevice() ? 0 : (parseFloat(this.canvas.dataset.parallax) || 0.05),
-                    videoSkewIntensity: 0,
                     maxLife: 200 // Maximum life span for regular particles
                 };
-                
-                // Mouse tracking for parallax and video skew
-                this.mouseX = 0;
-                this.mouseY = 0;
-                this.parallaxOffsetX = 0;
-                this.parallaxOffsetY = 0;
-                this.videoSkewX = 0;
-                this.videoSkewY = 0;
                 
                 // Force system for click/tap interactions
                 this.forces = [];
@@ -225,23 +218,8 @@
             }
             
             setupEventListeners() {
-                // Mouse tracking for parallax and video skew
-                document.addEventListener('mousemove', (e) => {
-                    this.mouseX = e.clientX;
-                    this.mouseY = e.clientY;
-                    
-                    // Calculate parallax offset based on mouse position relative to center
-                    const centerX = this.canvas.width / 2;
-                    const centerY = this.canvas.height / 2;
-                    
-                    this.parallaxOffsetX = (this.mouseX - centerX) * this.config.parallaxIntensity;
-                    this.parallaxOffsetY = (this.mouseY - centerY) * this.config.parallaxIntensity;
-                    
-                });
-                
                 // Particle count control
                 this.createParticles();
-                
             }
             
             createParticles() {
@@ -347,14 +325,11 @@
             drawParticles() {
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 
-                // Apply zoom and parallax transformations
+                // Apply zoom transformation
                 this.ctx.save();
                 this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
                 this.ctx.scale(this.config.zoom, this.config.zoom);
                 this.ctx.translate(-this.canvas.width / 2, -this.canvas.height / 2);
-                
-                // Apply parallax offset
-                this.ctx.translate(this.parallaxOffsetX, this.parallaxOffsetY);
                 
                 // Draw particles
                 this.particles.forEach(particle => {
@@ -410,19 +385,11 @@
             // Add a force at the specified position
             addForce(x, y) {
                 // Transform click coordinates to match particle coordinate system
-                // Reverse the transformations applied in drawParticles
-                let transformedX = x;
-                let transformedY = y;
-                
-                // Reverse parallax offset
-                transformedX -= this.parallaxOffsetX;
-                transformedY -= this.parallaxOffsetY;
-                
-                // Reverse zoom transformation
+                // Reverse the zoom transformation applied in drawParticles
                 const centerX = this.canvas.width / 2;
                 const centerY = this.canvas.height / 2;
-                transformedX = (transformedX - centerX) / this.config.zoom + centerX;
-                transformedY = (transformedY - centerY) / this.config.zoom + centerY;
+                const transformedX = (x - centerX) / this.config.zoom + centerX;
+                const transformedY = (y - centerY) / this.config.zoom + centerY;
                 
                 console.log('ParticleSystem: Adding force:', x, y, '-> transformed:', transformedX, transformedY, 'Current forces:', this.forces.length);
                 this.forces.push({
@@ -467,20 +434,10 @@
                     maxDistance: 0,
                     fadeDistance: 500,
                     zoom: 2.5,
-                    parallaxIntensity: isTouchDevice() ? 0 : (parseFloat(this.canvas.dataset.parallax) || 0.05),
-                    videoSkewIntensity: 0.05,
                     spriteSize: 20, // Size of the sprite image
                     rotationSpeed: 0.02, // How fast particles rotate
                     maxLife: 1000 // Maximum life span for sprites
                 };
-                
-                // Mouse tracking for parallax and video skew
-                this.mouseX = 0;
-                this.mouseY = 0;
-                this.parallaxOffsetX = 0;
-                this.parallaxOffsetY = 0;
-                this.videoSkewX = 0;
-                this.videoSkewY = 0;
                 
                 // Force system for click/tap interactions
                 this.forces = [];
@@ -564,20 +521,6 @@
             }
             
             setupEventListeners() {
-                // Mouse tracking for parallax and video skew
-                document.addEventListener('mousemove', (e) => {
-                    this.mouseX = e.clientX;
-                    this.mouseY = e.clientY;
-                    
-                    // Calculate parallax offset based on mouse position relative to center
-                    const centerX = this.canvas.width / 2;
-                    const centerY = this.canvas.height / 2;
-                    
-                    this.parallaxOffsetX = (this.mouseX - centerX) * this.config.parallaxIntensity;
-                    this.parallaxOffsetY = (this.mouseY - centerY) * this.config.parallaxIntensity;
-                    
-                });
-                
                 this.createParticles();
             }
             
@@ -692,14 +635,11 @@
             drawParticles() {
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 
-                // Apply zoom and parallax transformations
+                // Apply zoom transformation
                 this.ctx.save();
                 this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
                 this.ctx.scale(this.config.zoom, this.config.zoom);
                 this.ctx.translate(-this.canvas.width / 2, -this.canvas.height / 2);
-                
-                // Apply parallax offset
-                this.ctx.translate(this.parallaxOffsetX, this.parallaxOffsetY);
                 
                 // Draw particles
                 this.particles.forEach(particle => {
@@ -752,19 +692,11 @@
             // Add a force at the specified position
             addForce(x, y) {
                 // Transform click coordinates to match particle coordinate system
-                // Reverse the transformations applied in drawParticles
-                let transformedX = x;
-                let transformedY = y;
-                
-                // Reverse parallax offset
-                transformedX -= this.parallaxOffsetX;
-                transformedY -= this.parallaxOffsetY;
-                
-                // Reverse zoom transformation
+                // Reverse the zoom transformation applied in drawParticles
                 const centerX = this.canvas.width / 2;
                 const centerY = this.canvas.height / 2;
-                transformedX = (transformedX - centerX) / this.config.zoom + centerX;
-                transformedY = (transformedY - centerY) / this.config.zoom + centerY;
+                const transformedX = (x - centerX) / this.config.zoom + centerX;
+                const transformedY = (y - centerY) / this.config.zoom + centerY;
                 
                 console.log('ParticleSpriteSystem: Adding force:', x, y, '-> transformed:', transformedX, transformedY, 'Current forces:', this.forces.length);
                 this.forces.push({
@@ -825,33 +757,95 @@
         document.addEventListener('click', handleClickOrTap);
         document.addEventListener('touchstart', handleClickOrTap);
 
-        // Video parallax system
-        class VideoParallaxSystem {
+        // Standalone parallax function
+        function createParallaxSystem(elements, options = {}) {
+            const multiplier = .05
+            const {
+                intensity = 1,
+                disabled = isTouchDevice(),
+                scale = 1,
+                centerX = window.innerWidth / 2,
+                centerY = window.innerHeight / 2
+            } = options;
+
+            if (disabled) return null;
+
+            const handleMouseMove = (e) => {
+                const mouseOffsetX = e.clientX - centerX;
+                const mouseOffsetY = e.clientY - centerY;
+                
+                const parallaxX = mouseOffsetX * intensity * multiplier;
+                const parallaxY = mouseOffsetY * intensity * multiplier;
+                
+                elements.forEach(element => {
+                    if (element && element.style) {
+                        element.style.transform = `scale(${(104 + intensity*2)/100}) translate(${parallaxX}px, ${parallaxY}px)`;
+                    }
+                });
+            };
+
+            document.addEventListener('mousemove', handleMouseMove);
+            
+            // Return cleanup function
+            return () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+            };
+        }
+
+        // Unified parallax system that queries elements by data-parallax attribute
+        class UnifiedParallaxSystem {
             constructor() {
-                this.video = document.querySelector('.bg-video');
-                this.parallaxIntensity = isTouchDevice() ? 0 : 0.005; // Disable parallax on touch devices
-                this.setupVideoParallax();
+                this.cleanupFunctions = [];
+                this.setupParallax();
             }
             
-            setupVideoParallax() {
-                if (!this.video || isTouchDevice()) return; // Skip setup on touch devices
+            setupParallax() {
+                // Query all elements with data-parallax attribute
+                const elementsWithParallax = document.querySelectorAll('[data-parallax]');
                 
-                document.addEventListener('mousemove', (e) => {
-                    const centerX = window.innerWidth / 2;
-                    const centerY = window.innerHeight / 2;
-                    
-                    // Calculate parallax offset based on mouse position relative to center
-                    const parallaxX = (e.clientX - centerX) * this.parallaxIntensity;
-                    const parallaxY = (e.clientY - centerY) * this.parallaxIntensity;
-                    
-                    // Apply parallax to video with scale to account for fullscreen movement
-                    this.video.style.transform = `scale(1.05) translate(${parallaxX}px, ${parallaxY}px)`;
+                // Group elements by their parallax intensity
+                const intensityGroups = {};
+                
+                elementsWithParallax.forEach(element => {
+                    const intensity = parseFloat(element.dataset.parallax);
+                    if (!isNaN(intensity) && intensity > 0) {
+                        if (!intensityGroups[intensity]) {
+                            intensityGroups[intensity] = [];
+                        }
+                        intensityGroups[intensity].push(element);
+                    }
                 });
+                
+                // Create parallax systems for each intensity group
+                Object.keys(intensityGroups).forEach(intensity => {
+                    const elements = intensityGroups[intensity];
+                    const numIntensity = parseFloat(intensity);
+                    
+                    // Determine if this group needs special handling (e.g., video with scale)
+                    const hasVideo = elements.some(el => el.tagName === 'VIDEO');
+                    const scale = hasVideo ? 1.05 : 1; // Video gets scale for fullscreen movement
+                    
+                    const cleanup = createParallaxSystem(elements, {
+                        intensity: numIntensity,
+                        scale: scale,
+                        disabled: isTouchDevice()
+                    });
+                    
+                    if (cleanup) {
+                        this.cleanupFunctions.push(cleanup);
+                    }
+                });
+            }
+            
+            // Cleanup method to remove event listeners
+            destroy() {
+                this.cleanupFunctions.forEach(cleanup => cleanup());
+                this.cleanupFunctions = [];
             }
         }
         
-        // Initialize video parallax system
-        new VideoParallaxSystem();
+        // Initialize unified parallax system
+        new UnifiedParallaxSystem();
         
     </script>
 </body>
