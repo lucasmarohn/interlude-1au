@@ -128,6 +128,11 @@
         const spriteSize = 1;
         const speedMultiplier = 1
 
+        // Detect if device supports touch
+        function isTouchDevice() {
+            return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        }
+
         class ParticleSystem {
             constructor(canvasElement) {
                 this.canvas = canvasElement
@@ -146,7 +151,7 @@
                     maxDistance: 0,
                     fadeDistance: 500,
                     zoom: 2.5,
-                    parallaxIntensity: parseFloat(this.canvas.dataset.parallax) || 0.05,
+                    parallaxIntensity: isTouchDevice() ? 0 : (parseFloat(this.canvas.dataset.parallax) || 0.05),
                     videoSkewIntensity: 0,
                     maxLife: 200 // Maximum life span for regular particles
                 };
@@ -393,7 +398,7 @@
                     maxDistance: 0,
                     fadeDistance: 500,
                     zoom: 2.5,
-                    parallaxIntensity: parseFloat(this.canvas.dataset.parallax) || 0.05,
+                    parallaxIntensity: isTouchDevice() ? 0 : (parseFloat(this.canvas.dataset.parallax) || 0.05),
                     videoSkewIntensity: 0.05,
                     spriteSize: 20, // Size of the sprite image
                     rotationSpeed: 0.02, // How fast particles rotate
@@ -660,12 +665,12 @@
         class VideoParallaxSystem {
             constructor() {
                 this.video = document.querySelector('.bg-video');
-                this.parallaxIntensity = 0.005; // Adjust this value to control parallax strength
+                this.parallaxIntensity = isTouchDevice() ? 0 : 0.005; // Disable parallax on touch devices
                 this.setupVideoParallax();
             }
             
             setupVideoParallax() {
-                if (!this.video) return;
+                if (!this.video || isTouchDevice()) return; // Skip setup on touch devices
                 
                 document.addEventListener('mousemove', (e) => {
                     const centerX = window.innerWidth / 2;
