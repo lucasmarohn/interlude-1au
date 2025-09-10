@@ -68,7 +68,7 @@
             animation: fadeInImages .5s ease-in-out forwards;
             animation-delay: 3s; 
             mix-blend-mode: color-dodge;
-
+            pointer-events: none;
         }
 
         .bg-image {
@@ -160,7 +160,7 @@
                 // Force system for click/tap interactions
                 this.forces = [];
                 this.forceRadius = 150; // Radius of force effect
-                this.forceStrength = 0.5; // Strength of the force
+                this.forceStrength = isTouchDevice() ? 0.025 : 0.25; // Strength of the force
                 this.forceDuration = 60; // Duration in frames (1 second at 60fps)
                 
                 this.setupCanvas();
@@ -442,7 +442,7 @@
                 // Force system for click/tap interactions
                 this.forces = [];
                 this.forceRadius = 150; // Radius of force effect
-                this.forceStrength = 0.5; // Strength of the force
+                this.forceStrength = isTouchDevice() ? 0.025 : 0.25; // Strength of the force
                 this.forceDuration = 60; // Duration in frames (1 second at 60fps)
                 
                 this.loadSprites();
