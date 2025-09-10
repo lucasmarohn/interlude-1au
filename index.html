@@ -185,7 +185,9 @@
             
             setupUniformCreation() {
                 // Create regular particles at uniform intervals to maintain consistent distribution
-                const interval = this.config.maxLife / this.config.particleCount;
+                // Estimate natural life based on viewport size and particle speed
+                const estimatedNaturalLife = Math.max(this.canvas.width, this.canvas.height) / this.config.speed;
+                const interval = estimatedNaturalLife / this.config.particleCount;
                 
                 this.creationInterval = setInterval(() => {
                     // Always create a new particle to maintain count
@@ -232,9 +234,8 @@
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed,
                     size: Math.random() * this.config.size + 0.5,
-                    opacity: Math.random() * 0.8 + 0.2,
-                    life: 1.0,
-                    maxLife: Math.random() * 200 + 200
+                    opacity: 1.0,
+                    age: 0
                 };
             }
             
@@ -255,21 +256,36 @@
                     particle.vx *= .9995;
                     particle.vy *= .9995;
                     
-                    // Update life
-                    particle.life -= 1 / particle.maxLife;
+                    // Calculate distance from center for fade effect
+                    const dx = particle.x - this.config.centerX;
+                    const dy = particle.y - this.config.centerY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
                     
-                    // Start at 100% opacity and fade out
-                    particle.opacity = Math.max(0, Math.min(1, particle.life));
+                    // Fade out based on distance from center
+                    const maxVisibleDistance = this.config.maxDistance * 0.8; // Start fading at 80% of max distance
+                    const fadeStart = maxVisibleDistance * 0.6; // Start fading at 60% of max distance
                     
-                    // Size starts at 0 and grows to maximum by end of life
-                    // Ensure size is always finite and positive
-                    const sizeMultiplier = Math.max(0, Math.min(1, 1 - particle.life));
-                    particle.currentSize = Math.max(0, particle.size * sizeMultiplier);
+                    if (distance > fadeStart) {
+                        const fadeProgress = Math.min(1, (distance - fadeStart) / (maxVisibleDistance - fadeStart));
+                        particle.opacity = Math.max(0, 1 - fadeProgress);
+                    } else {
+                        particle.opacity = 1;
+                    }
                     
-                    // Only remove dead particles, let them move past the edge
-                    if (particle.life <= 0) {
+                    // Size grows over time (not based on life)
+                    particle.age = (particle.age || 0) + 1;
+                    const maxAge = 300; // Particles reach full size after 300 frames
+                    const sizeMultiplier = Math.min(1, particle.age / maxAge);
+                    particle.currentSize = particle.size * sizeMultiplier;
+                    
+                    // Remove particles that are completely outside viewport
+                    const margin = 100; // Extra margin to ensure smooth removal
+                    if (particle.x < -margin || 
+                        particle.x > this.canvas.width + margin || 
+                        particle.y < -margin || 
+                        particle.y > this.canvas.height + margin ||
+                        distance > this.config.maxDistance * 1.2) { // Remove at 120% of max distance
                         this.particles.splice(i, 1);
-                        // Don't immediately replace - let uniform creation handle it
                     }
                 }
             }
@@ -404,7 +420,9 @@
             
             setupUniformCreation() {
                 // Create sprites at uniform intervals to maintain consistent distribution
-                const interval = this.config.maxLife / this.config.particleCount;
+                // Estimate natural life based on viewport size and particle speed
+                const estimatedNaturalLife = Math.max(this.canvas.width, this.canvas.height) / this.config.speed;
+                const interval = estimatedNaturalLife / this.config.particleCount;
                 
                 this.creationInterval = setInterval(() => {
                     // Always create a new particle to maintain count
@@ -460,7 +478,7 @@
                 const speed = (Math.random() * 0.5 + 0.5) * this.config.speed;
                 
                 // Stagger particle creation to avoid waves
-                const lifeOffset = (index / this.config.particleCount) * this.config.maxLife;
+                const staggerOffset = (index / this.config.particleCount) * 100; // Small stagger for variety
                 
                 return {
                     x: this.config.centerX + Math.cos(angle) * distance,
@@ -468,13 +486,11 @@
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed,
                     size: Math.random() * this.config.size + 0.5,
-                    opacity: Math.random() * 0.8 + 0.2,
-                    life: 1.0,
-                    maxLife: this.config.maxLife,
+                    opacity: 1.0,
+                    age: 0,
                     rotation: Math.random() * Math.PI * 2,
                     rotationSpeed: (Math.random() - 0.5) * this.config.rotationSpeed,
-                    spriteIndex: Math.floor(Math.random() * this.spriteImageSources.length),
-                    creationTime: Date.now() + lifeOffset
+                    spriteIndex: Math.floor(Math.random() * this.spriteImageSources.length)
                 };
             }
             
@@ -497,21 +513,36 @@
                     particle.vx *= .9995;
                     particle.vy *= .9995;
                     
-                    // Update life
-                    particle.life -= 1 / particle.maxLife;
+                    // Calculate distance from center for fade effect
+                    const dx = particle.x - this.config.centerX;
+                    const dy = particle.y - this.config.centerY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
                     
-                    // Keep sprite opacity constant
-                    particle.opacity = 1.0;
+                    // Fade out based on distance from center
+                    const maxVisibleDistance = this.config.maxDistance * 0.8; // Start fading at 80% of max distance
+                    const fadeStart = maxVisibleDistance * 0.6; // Start fading at 60% of max distance
                     
-                    // Size starts at 0 and grows to maximum by end of life
-                    // Ensure size is always finite and positive
-                    const sizeMultiplier = Math.max(0, Math.min(1, 1 - particle.life));
-                    particle.currentSize = Math.max(0, particle.size * sizeMultiplier);
+                    if (distance > fadeStart) {
+                        const fadeProgress = Math.min(1, (distance - fadeStart) / (maxVisibleDistance - fadeStart));
+                        particle.opacity = Math.max(0, 1 - fadeProgress);
+                    } else {
+                        particle.opacity = 1.0;
+                    }
                     
-                    // Only remove dead particles, let them move past the edge
-                    if (particle.life <= 0) {
+                    // Size grows over time (not based on life)
+                    particle.age = (particle.age || 0) + 1;
+                    const maxAge = 300; // Sprites reach full size after 300 frames
+                    const sizeMultiplier = Math.min(1, particle.age / maxAge);
+                    particle.currentSize = particle.size * sizeMultiplier;
+                    
+                    // Remove particles that are completely outside viewport
+                    const margin = 100; // Extra margin to ensure smooth removal
+                    if (particle.x < -margin || 
+                        particle.x > this.canvas.width + margin || 
+                        particle.y < -margin || 
+                        particle.y > this.canvas.height + margin ||
+                        distance > this.config.maxDistance * 1.2) { // Remove at 120% of max distance
                         this.particles.splice(i, 1);
-                        // Don't immediately replace - let uniform creation handle it
                     }
                 }
             }
