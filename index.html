@@ -133,8 +133,10 @@
         }
 
         const spriteImageSources = ['sprites/1.png', 'sprites/2.png','sprites/3.png','sprites/4.png','sprites/5.png']
-        const spriteSize = 1;
+        const spriteSize = isTouchDevice() ? 1 : .25;
         const speedMultiplier = isTouchDevice() ? 1 : .25
+        const particleCount = isTouchDevice() ? 200 : 1000
+        const spriteCount = isTouchDevice() ? 500 : 1000
 
 
 
@@ -148,7 +150,7 @@
                 
                 // Configuration
                 this.config = {
-                    particleCount: 200,
+                    particleCount: particleCount,
                     speed: 0.25 * speedMultiplier, // Base speed - will be adjusted for viewport
                     size: 1,
                     centerX: 0,
@@ -198,7 +200,7 @@
                 this.config.viewportSpeedMultiplier = viewportDiagonal / referenceDiagonal;
                 
                 // Adjust particle count for viewport size - fewer on small devices, same on large devices
-                const baseParticleCount = 200; // Original desktop count
+                const baseParticleCount = particleCount; // Original desktop count
                 const viewportArea = this.canvas.width * this.canvas.height;
                 const referenceArea = 1920 * 1080; // Desktop reference area
                 const areaRatio = viewportArea / referenceArea;
@@ -243,7 +245,7 @@
                     y: this.config.centerY + Math.sin(angle) * distance,
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed,
-                    size: Math.random() * this.config.size + 0.5,
+                    size: Math.random() * this.config.size + 0.25,
                     opacity: 1.0,
                     age: 0
                 };
@@ -252,31 +254,12 @@
             
             updateParticles() {
                 // Update forces first
-                this.updateForces();
+                // this.updateForces();
                 
                 for (let i = this.particles.length - 1; i >= 0; i--) {
                     const particle = this.particles[i];
                     
-                    // Apply forces to particle velocity
-                    this.forces.forEach(force => {
-                        const dx = particle.x - force.x;
-                        const dy = particle.y - force.y;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
-                        
-                        if (distance < this.forceRadius && distance > 0) {
-                            // Calculate force strength based on distance and age
-                            const normalizedDistance = distance / this.forceRadius;
-                            const ageFactor = 1 - (force.age / force.maxAge);
-                            const forceMagnitude = this.forceStrength * ageFactor * (1 - normalizedDistance);
-                            
-                            // Apply repulsive force
-                            const forceX = (dx / distance) * forceMagnitude;
-                            const forceY = (dy / distance) * forceMagnitude;
-                            
-                            particle.vx += forceX;
-                            particle.vy += forceY;
-                        }
-                    });
+                    
                     
                     // Update position
                     particle.x += particle.vx;
@@ -344,9 +327,9 @@
                             particle.x, particle.y, 0,
                             particle.x, particle.y, particle.currentSize * 3
                         );
-                        gradient.addColorStop(0, `hsla(${200 + particle.life * 60}, 70%, ${70 + particle.life * 20}%, ${particle.opacity})`);
-                        gradient.addColorStop(0.5, `hsla(${200 + particle.life * 60}, 70%, ${50 + particle.life * 30}%, ${particle.opacity * 0.5})`);
-                        gradient.addColorStop(1, `hsla(${200 + particle.life * 60}, 70%, ${30 + particle.life * 20}%, 0)`);
+                        gradient.addColorStop(0, `hsla(${200 + (particle.life || 0) * 60}, 70%, ${70 + (particle.life || 0) * 20}%, ${particle.opacity})`);
+                        gradient.addColorStop(0.5, `hsla(${200 + (particle.life || 0) * 60}, 70%, ${50 + (particle.life || 0) * 30}%, ${particle.opacity * 0.5})`);
+                        gradient.addColorStop(1, `hsla(${200 + (particle.life || 0) * 60}, 70%, ${30 + (particle.life || 0) * 20}%, 0)`);
                         
                         this.ctx.fillStyle = gradient;
                         this.ctx.beginPath();
@@ -428,7 +411,7 @@
                 
                 // Configuration
                 this.config = {
-                    particleCount: 500,
+                    particleCount: spriteCount,
                     speed: 2 * speedMultiplier,
                     size: spriteSize,
                     centerX: 0,
@@ -444,7 +427,7 @@
                 // Force system for click/tap interactions
                 this.forces = [];
                 this.forceRadius = 150; // Radius of force effect
-                this.forceStrength = isTouchDevice() ? 0.025 : 0.25; // Strength of the force
+                this.forceStrength =  isTouchDevice() ? 0.025 : 0.25; // Strength of the force
                 this.forceDuration = 60; // Duration in frames (1 second at 60fps)
                 
                 this.loadSprites();
@@ -513,7 +496,7 @@
                 this.config.viewportSpeedMultiplier = viewportDiagonal / referenceDiagonal;
                 
                 // Adjust particle count for viewport size - fewer on small devices, same on large devices
-                const baseParticleCount = 500; // Original desktop count for sprites
+                const baseParticleCount = spriteCount; // Original desktop count for sprites
                 const viewportArea = this.canvas.width * this.canvas.height;
                 const referenceArea = 1920 * 1080; // Desktop reference area
                 const areaRatio = viewportArea / referenceArea;
@@ -548,7 +531,7 @@
                     y: this.config.centerY + Math.sin(angle) * distance,
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed,
-                    size: Math.random() * this.config.size + 0.5,
+                    size: Math.random() * this.config.size + 0.15,
                     opacity: 1.0,
                     age: 0,
                     rotation: Math.random() * Math.PI * 2,
