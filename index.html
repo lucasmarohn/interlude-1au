@@ -139,7 +139,7 @@
                 // Configuration
                 this.config = {
                     particleCount: 200,
-                    speed: .25 * speedMultiplier,
+                    speed: 0.25 * speedMultiplier, // Base speed - will be adjusted for viewport
                     size: 1,
                     centerX: 0,
                     centerY: 0,
@@ -181,6 +181,24 @@
                     Math.pow(this.canvas.width, 2) + 
                     Math.pow(this.canvas.height, 2)
                 );
+                
+                // Adjust speed for viewport size to maintain consistent visual speed
+                // Use diagonal of viewport as reference for consistent speed across devices
+                const viewportDiagonal = Math.sqrt(
+                    Math.pow(this.canvas.width, 2) + 
+                    Math.pow(this.canvas.height, 2)
+                );
+                const referenceDiagonal = Math.sqrt(1920 * 1920 + 1080 * 1080); // Desktop reference
+                this.config.viewportSpeedMultiplier = viewportDiagonal / referenceDiagonal;
+                
+                // Adjust particle count for viewport size - fewer on small devices, same on large devices
+                const baseParticleCount = 200; // Original desktop count
+                const viewportArea = this.canvas.width * this.canvas.height;
+                const referenceArea = 1920 * 1080; // Desktop reference area
+                const areaRatio = viewportArea / referenceArea;
+                
+                // Scale particle count with area, but cap at original count for large screens
+                this.config.particleCount = Math.min(baseParticleCount, Math.round(baseParticleCount * areaRatio));
             }
             
             setupUniformCreation() {
@@ -226,7 +244,8 @@
                 const emissionRadiusX = (this.canvas.width * 1) / 2;
                 const emissionRadiusY = (this.canvas.height * 1) / 2;
                 const distance = Math.random() * Math.min(emissionRadiusX, emissionRadiusY);
-                const speed = (Math.random() * 0.5 + 0.5) * this.config.speed;
+                // Apply viewport speed multiplier for consistent visual speed across devices
+                const speed = (Math.random() * 0.5 + 0.5) * this.config.speed * (this.config.viewportSpeedMultiplier || 1);
                 
                 return {
                     x: this.config.centerX + Math.cos(angle) * distance,
@@ -444,6 +463,24 @@
                     Math.pow(this.canvas.width, 2) + 
                     Math.pow(this.canvas.height, 2)
                 );
+                
+                // Adjust speed for viewport size to maintain consistent visual speed
+                // Use diagonal of viewport as reference for consistent speed across devices
+                const viewportDiagonal = Math.sqrt(
+                    Math.pow(this.canvas.width, 2) + 
+                    Math.pow(this.canvas.height, 2)
+                );
+                const referenceDiagonal = Math.sqrt(1920 * 1920 + 1080 * 1080); // Desktop reference
+                this.config.viewportSpeedMultiplier = viewportDiagonal / referenceDiagonal;
+                
+                // Adjust particle count for viewport size - fewer on small devices, same on large devices
+                const baseParticleCount = 500; // Original desktop count for sprites
+                const viewportArea = this.canvas.width * this.canvas.height;
+                const referenceArea = 1920 * 1080; // Desktop reference area
+                const areaRatio = viewportArea / referenceArea;
+                
+                // Scale particle count with area, but cap at original count for large screens
+                this.config.particleCount = Math.min(baseParticleCount, Math.round(baseParticleCount * areaRatio));
             }
             
             setupEventListeners() {
@@ -475,7 +512,8 @@
                 const emissionRadiusX = (this.canvas.width * 1) / 2;
                 const emissionRadiusY = (this.canvas.height * 1) / 2;
                 const distance = Math.random() * Math.min(emissionRadiusX, emissionRadiusY);
-                const speed = (Math.random() * 0.5 + 0.5) * this.config.speed;
+                // Apply viewport speed multiplier for consistent visual speed across devices
+                const speed = (Math.random() * 0.5 + 0.5) * this.config.speed * (this.config.viewportSpeedMultiplier || 1);
                 
                 // Stagger particle creation to avoid waves
                 const staggerOffset = (index / this.config.particleCount) * 100; // Small stagger for variety
