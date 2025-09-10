@@ -45,7 +45,7 @@
             mix-blend-mode: screen;
             opacity: 0;
             animation: fadeIn .5s ease-in-out forwards;
-            animation-delay: 3s;
+            animation-delay: 3.5s;
         }
 
         .bg-video {
@@ -127,14 +127,16 @@
 
 
     <script>
-        const spriteImageSources = ['sprites/1.png', 'sprites/2.png','sprites/3.png','sprites/4.png','sprites/5.png']
-        const spriteSize = 1;
-        const speedMultiplier = 1
-
         // Detect if device supports touch
         function isTouchDevice() {
             return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         }
+
+        const spriteImageSources = ['sprites/1.png', 'sprites/2.png','sprites/3.png','sprites/4.png','sprites/5.png']
+        const spriteSize = 1;
+        const speedMultiplier = isTouchDevice() ? 1 : .25
+
+
 
         class ParticleSystem {
             constructor(canvasElement) {
@@ -285,8 +287,8 @@
                     particle.vy += (Math.random() - 0.5) * 0.02;
                     
                     // Apply slight acceleration
-                    particle.vx *= .9995;
-                    particle.vy *= .9995;
+                    particle.vx *= 1;
+                    particle.vy *= 1;
                     
                     // Calculate distance from center for fade effect
                     const dx = particle.x - this.config.centerX;
@@ -595,8 +597,8 @@
                     particle.vy += (Math.random() - 0.5) * 0.02;
                     
                     // Apply slight friction
-                    particle.vx *= .9995;
-                    particle.vy *= .9995;
+                    particle.vx *= 1;
+                    particle.vy *= 1;
                     
                     // Calculate distance from center for fade effect
                     const dx = particle.x - this.config.centerX;
