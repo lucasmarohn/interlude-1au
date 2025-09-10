@@ -15,6 +15,15 @@
             }
         }
 
+        @keyframes fadeInImages {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: .3;
+            }
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -39,43 +48,6 @@
             animation-delay: 3s;
         }
 
-        .controls {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            color: white;
-            font-size: 14px;
-            display: none;
-        }
-
-        .controls label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .controls input[type="range"] {
-            width: 150px;
-            margin-bottom: 10px;
-        }
-
-        .controls button {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-
-        .controls button:hover {
-            background: #45a049;
-        }
-
         .bg-video {
           position: absolute;
           inset: 0;
@@ -86,16 +58,51 @@
           transition: transform 0.1s ease-out;
         }
 
+        .bg-images {
+            display: block;
+            z-index: 100;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            animation: fadeInImages .5s ease-in-out forwards;
+            animation-delay: 3s; 
+            mix-blend-mode: color-dodge;
+
+        }
+
         .bg-image {
             z-index: 1;
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            opacity: .5;
+            animation: rotate360 30s linear infinite;
             mix-blend-mode: screen;
-            filter: contrast(1.2) grayscale(1);
+        }
+        .bg-image.slow {
+            animation: rotate3602 50s linear infinite !important;
+            mix-blend-mode: screen;
 
+        }
+
+        @keyframes rotate360 {
+            from {
+                transform: rotate(0)
+            }
+            to {
+                transform: rotate(360deg)
+            }
+        }
+        @keyframes rotate3602 {
+            from {
+                transform: rotate(30)
+            }
+            to {
+                transform: rotate(400deg)
+            }
         }
 
         
@@ -106,38 +113,19 @@
     <canvas class="canvas particle" data-parallax="0.05"></canvas>
     <!-- <canvas class="canvas particle" data-parallax="0.07" style="filter: blur(10px)"></canvas> -->
     <canvas class="canvas sprite" data-parallax="0.025"></canvas>
-    <video src="footage/0001-0600.mp4" muted autoplay playsInline class="bg-video"></video>
-
-
-    <div class="controls">
-        <label>Particle Count: <span id="countValue">200</span></label>
-        <input type="range" id="particleCount" min="50" max="500" value="200">
-        
-        <label>Speed: <span id="speedValue">0.3</span></label>
-        <input type="range" id="particleSpeed" min="0.05" max="1.5" step="0.05" value="0.3">
-        
-        <label>Size: <span id="sizeValue">0.8</span></label>
-        <input type="range" id="particleSize" min="0.1" max="2.0" step="0.1" value="0.8">
-        
-        <label>Parallax: <span id="parallaxValue">0.05</span></label>
-        <input type="range" id="parallaxIntensity" min="0" max="0.5" step="0.05" value="0.3">
-        
-        <label>Bokeh Count: <span id="bokehCountValue">15</span></label>
-        <input type="range" id="bokehCount" min="5" max="30" value="15">
-        
-        <label>Bokeh Size: <span id="bokehSizeValue">1.5</span></label>
-        <input type="range" id="bokehSize" min="0.5" max="3.0" step="0.1" value="1.5">
-        
-        <label>Video Skew: <span id="skewValue">0.1</span></label>
-        <input type="range" id="videoSkew" min="0" max="0.5" step="0.01" value="0.1">
-        
-        <button onclick="resetParticles()">Reset</button>
-        <button onclick="toggleAnimation()">Pause/Play</button>
+    <video src="http://cdn.prod.website-files.com/5ff3b5564c41048449a189b2%2F68c1a67ef8cee1a64073b0f4_sept09-0001-0660_small-transcode.mp4" muted autoplay playsInline class="bg-video"></video>
+    <div class="bg-images">
+        <img src="radial-blur.png" class="bg-image">
+        <img src="radial-blur.png" class="bg-image slow">
     </div>
 
 
-    <script>
+    
 
+
+    <script>
+        const spriteImageSources = ['sprites/1.png', 'sprites/2.png','sprites/3.png','sprites/4.png','sprites/5.png']
+        const spriteSize = 1;
         const speedMultiplier = 1
 
         class ParticleSystem {
@@ -218,55 +206,10 @@
                     this.parallaxOffsetX = (this.mouseX - centerX) * this.config.parallaxIntensity;
                     this.parallaxOffsetY = (this.mouseY - centerY) * this.config.parallaxIntensity;
                     
-                    // Calculate video skew based on mouse position relative to center
-                    const normalizedX = (this.mouseX - centerX) / centerX; // -1 to 1
-                    const normalizedY = (this.mouseY - centerY) / centerY; // -1 to 1
-                    
-                    this.videoSkewX = normalizedX * this.config.videoSkewIntensity;
-                    this.videoSkewY = normalizedY * this.config.videoSkewIntensity;
-                    
                 });
                 
                 // Particle count control
-                const countSlider = document.getElementById('particleCount');
-                const countValue = document.getElementById('countValue');
-                countSlider.addEventListener('input', (e) => {
-                    this.config.particleCount = parseInt(e.target.value);
-                    countValue.textContent = e.target.value;
-                    this.createParticles();
-                });
-                
-                // Speed control
-                const speedSlider = document.getElementById('particleSpeed');
-                const speedValue = document.getElementById('speedValue');
-                speedSlider.addEventListener('input', (e) => {
-                    this.config.speed = parseFloat(e.target.value);
-                    speedValue.textContent = e.target.value;
-                });
-                
-                // Size control
-                const sizeSlider = document.getElementById('particleSize');
-                const sizeValue = document.getElementById('sizeValue');
-                sizeSlider.addEventListener('input', (e) => {
-                    this.config.size = parseFloat(e.target.value);
-                    sizeValue.textContent = e.target.value;
-                });
-                
-                // Parallax control
-                const parallaxSlider = document.getElementById('parallaxIntensity');
-                const parallaxValue = document.getElementById('parallaxValue');
-                parallaxSlider.addEventListener('input', (e) => {
-                    this.config.parallaxIntensity = parseFloat(e.target.value);
-                    parallaxValue.textContent = e.target.value;
-                });
-                
-                // Video skew control
-                const skewSlider = document.getElementById('videoSkew');
-                const skewValue = document.getElementById('skewValue');
-                skewSlider.addEventListener('input', (e) => {
-                    this.config.videoSkewIntensity = parseFloat(e.target.value);
-                    skewValue.textContent = e.target.value;
-                });
+                this.createParticles();
                 
             }
             
@@ -309,8 +252,8 @@
                     particle.vy += (Math.random() - 0.5) * 0.02;
                     
                     // Apply slight acceleration
-                    particle.vx *= .9999;
-                    particle.vy *= .9999;
+                    particle.vx *= .9995;
+                    particle.vy *= .9995;
                     
                     // Update life
                     particle.life -= 1 / particle.maxLife;
@@ -403,13 +346,13 @@
                 this.animationId = null;
                 this.isAnimating = true;
                 this.spriteImages = [];
-                this.spriteImageSources = ['debris1.png', 'debris2.png','debris3.png'];
+                this.spriteImageSources = spriteImageSources;
                 
                 // Configuration
                 this.config = {
                     particleCount: 500,
                     speed: 2 * speedMultiplier,
-                    size: 1,
+                    size: spriteSize,
                     centerX: 0,
                     centerY: 0,
                     maxDistance: 0,
@@ -500,56 +443,7 @@
                     
                 });
                 
-                // Particle count control
-                const countSlider = document.getElementById('particleCount');
-                const countValue = document.getElementById('countValue');
-                if (countSlider) {
-                    countSlider.addEventListener('input', (e) => {
-                        this.config.particleCount = parseInt(e.target.value);
-                        countValue.textContent = e.target.value;
-                        this.createParticles();
-                    });
-                }
-                
-                // Speed control
-                const speedSlider = document.getElementById('particleSpeed');
-                const speedValue = document.getElementById('speedValue');
-                if (speedSlider) {
-                    speedSlider.addEventListener('input', (e) => {
-                        this.config.speed = parseFloat(e.target.value);
-                        speedValue.textContent = e.target.value;
-                    });
-                }
-                
-                // Size control
-                const sizeSlider = document.getElementById('particleSize');
-                const sizeValue = document.getElementById('sizeValue');
-                if (sizeSlider) {
-                    sizeSlider.addEventListener('input', (e) => {
-                        this.config.size = parseFloat(e.target.value);
-                        sizeValue.textContent = e.target.value;
-                    });
-                }
-                
-                // Parallax control
-                const parallaxSlider = document.getElementById('parallaxIntensity');
-                const parallaxValue = document.getElementById('parallaxValue');
-                if (parallaxSlider) {
-                    parallaxSlider.addEventListener('input', (e) => {
-                        this.config.parallaxIntensity = parseFloat(e.target.value);
-                        parallaxValue.textContent = e.target.value;
-                    });
-                }
-                
-                // Video skew control
-                const skewSlider = document.getElementById('videoSkew');
-                const skewValue = document.getElementById('skewValue');
-                if (skewSlider) {
-                    skewSlider.addEventListener('input', (e) => {
-                        this.config.videoSkewIntensity = parseFloat(e.target.value);
-                        skewValue.textContent = e.target.value;
-                    });
-                }
+                this.createParticles();
             }
             
             createParticles() {
@@ -600,8 +494,8 @@
                     particle.vy += (Math.random() - 0.5) * 0.02;
                     
                     // Apply slight friction
-                    particle.vx *= .9999;
-                    particle.vy *= .9999;
+                    particle.vx *= .9995;
+                    particle.vy *= .9995;
                     
                     // Update life
                     particle.life -= 1 / particle.maxLife;
@@ -693,8 +587,33 @@
             new ParticleSpriteSystem(canvasElement)
         })
 
-    
+        // Video parallax system
+        class VideoParallaxSystem {
+            constructor() {
+                this.video = document.querySelector('.bg-video');
+                this.parallaxIntensity = 0.005; // Adjust this value to control parallax strength
+                this.setupVideoParallax();
+            }
+            
+            setupVideoParallax() {
+                if (!this.video) return;
+                
+                document.addEventListener('mousemove', (e) => {
+                    const centerX = window.innerWidth / 2;
+                    const centerY = window.innerHeight / 2;
+                    
+                    // Calculate parallax offset based on mouse position relative to center
+                    const parallaxX = (e.clientX - centerX) * this.parallaxIntensity;
+                    const parallaxY = (e.clientY - centerY) * this.parallaxIntensity;
+                    
+                    // Apply parallax to video with scale to account for fullscreen movement
+                    this.video.style.transform = `scale(1.05) translate(${parallaxX}px, ${parallaxY}px)`;
+                });
+            }
+        }
         
+        // Initialize video parallax system
+        new VideoParallaxSystem();
         
     </script>
 </body>
